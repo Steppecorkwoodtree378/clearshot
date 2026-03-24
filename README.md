@@ -28,25 +28,15 @@ AI sucks at seeing screenshots. paste one into claude code and ask it to rebuild
 
 clearshot fixes this by running structured analysis *before* the AI responds. not "blue color" but `#3B82F6`. not "some spacing" but `8px gap`. not "a button" but `sm/rounded-md/border-gray-200/shadow-sm`.
 
-five-step pipeline, runs only what's needed:
+three analysis levels — facts and taste together, every time:
 
-| step | what it extracts | when it runs |
-|------|-----------------|--------------|
-| spatial decomposition | 3×3 grid mapping of page sections | almost always |
-| element inventory | every element: type, position, state, colors, borders | full rebuilds |
-| design system extraction | color palette, type scale, spacing patterns | rebuilds + critique |
-| layout architecture | CSS patterns, container constraints, responsive context | rebuilds only |
-| interaction map | CTAs, navigation, forms, visible states | rebuilds + UX critique |
+| level | what it does | when it runs |
+|-------|-------------|--------------|
+| map | 5×5 spatial grid, full element inventory with colors/borders/states | always |
+| system | color palette, type scale, spacing patterns, design cohesion | always |
+| blueprint | layout architecture, CSS patterns, interaction map, responsive context | when building |
 
-"clone this" → all 5 steps. "does this look right?" → step 1 only. it reads the room.
-
-## two modes
-
-**analytical** (engineer lens): hex values, pixel measurements, component types, layout patterns. for rebuilding, cloning, debugging.
-
-**qualitative** (designer lens): visual weight, hierarchy clarity, breathing room, brand signal. for "does this feel right?" conversations.
-
-picks the right one automatically, or blends both.
+levels 1+2 always run. level 3 escalates when you're implementing from the screenshot.
 
 ## it knows when to shut up
 

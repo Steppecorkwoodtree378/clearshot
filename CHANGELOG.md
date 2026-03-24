@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0 (2026-03-25)
+
+- Replaced 5-step pipeline with 3 analysis levels: Map, System, Blueprint
+- Levels 1+2 always run; Level 3 escalates when building from screenshot
+- Unified facts+taste analysis — removed separate analytical/qualitative/blended modes
+- 5×5 spatial grid (was 3×3) for more granular layout mapping
+- README restructured: install first, clean copy-friendly code blocks
+- Path-agnostic preamble: works from ~/.claude/skills/ or ~/.agents/skills/
+- No network calls until user completes first-run onboarding
+- Combined onboarding script (bin/onboarding.sh) for any install method
+
 ## 1.2.0 (2026-03-24)
 
 - Interactive onboarding: arrow-key pickers for update mode and telemetry during setup

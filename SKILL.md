@@ -1,6 +1,6 @@
 ---
 name: clearshot
-description: "Structured analysis of UI screenshots: spatial decomposition, element inventory, design tokens, layout architecture, and interaction mapping. Trigger on any image of a digital interface (website, app, dashboard, mockup, wireframe) whether user-uploaded or Claude-captured during computer use. Also trigger on 'analyse this screenshot,' 'rebuild this,' 'match this design,' 'what's wrong with this layout,' 'clone this,' or when a user drops an image with no instructions. Skip for non-UI images (photos, memes, charts) unless the user explicitly wants to build a UI from them."
+description: "Structured screenshot analysis for UI implementation and critique. Analyzes every UI screenshot with a 5×5 spatial grid, full element inventory, and design system extraction — facts and taste together, every time. Escalates to full implementation blueprint when building. Trigger on any digital interface image (websites, apps, dashboards, mockups, wireframes) or commands like 'analyse this screenshot,' 'rebuild this,' 'match this design,' 'clone this.' Skip for non-UI images (photos, memes, charts) unless the user explicitly wants to build a UI from them."
 ---
 
 ## Preamble
@@ -121,13 +121,11 @@ After the user runs it, proceed with the analysis. If the user declines, proceed
 
 # Screenshot analysis
 
-When an LLM looks at a screenshot and tries to go directly from pixels to code (or feedback or a description), it loses spatial relationships, misreads component hierarchy, and hallucinates design details. The research behind Microsoft OmniParser, DCGen, and Replit's visual verification loop all converge on the same fix: build a structured intermediate representation between "seeing the image" and "responding about it." That intermediate layer is what this skill provides.
-
-The skill has three layers of intelligence: knowing when NOT to run, choosing HOW to run (analytical vs qualitative vs blended), and choosing HOW MUCH to run (which steps, at what depth).
+When an LLM looks at a screenshot and tries to go directly from pixels to code (or feedback or a description), it loses spatial relationships, misreads component hierarchy, and hallucinates design details. The fix: build a structured intermediate representation between "seeing the image" and "responding about it." That intermediate layer is what this skill provides.
 
 ## Gate check
 
-Not every image needs this skill. Running a full UI analysis on a photo of someone's dog wastes context and confuses the response.
+Not every image needs this skill.
 
 **Ask two questions before doing anything:**
 
@@ -135,114 +133,55 @@ Not every image needs this skill. Running a full UI analysis on a photo of someo
 
 2. Is the conversation about building, debugging, designing, or evaluating UI?
 
-**Four outcomes:**
+**Three outcomes:**
 
-- Both no: exit the skill entirely. Respond normally. Don't mention this framework.
-- Image is not a UI, but the conversation IS about building UI (e.g. "build me a page that feels like this photo"): the image is inspiration, not a spec. Use qualitative mode only.
-- Image IS a UI, but the conversation is not about building (e.g. "what app is this?"): do a quick spatial read (step 1 only), then answer their actual question.
-- Both yes: proceed with the pipeline. Choose mode and depth based on context.
+- Neither is true: exit the skill entirely. Respond normally. Don't mention this framework.
+- Image is not a UI, but the conversation IS about building UI (e.g. "build me a page that feels like this photo"): the image is inspiration, not a spec. Describe what it communicates — mood, texture, weight — and move on. No structured analysis.
+- Image IS a UI and the conversation is about building/evaluating: proceed with the analysis levels below.
 
-The gate check exists because a skill that runs when it shouldn't is worse than a skill that occasionally misses. False positives erode trust faster than false negatives.
+## Analysis levels
 
-## Mode selection
+Every analysis combines facts and taste. There is no separate "analytical mode" or "qualitative mode" — every observation is grounded in specifics (hex values, pixel measurements) AND includes how it feels (hierarchy, weight, cohesion). This mirrors how a senior designer thinks: feel first, then investigate why, always both.
 
-There are two lenses for looking at a screenshot. The skill should choose one, or blend both, based on what the conversation needs. Getting this right matters because the same screenshot described in the wrong mode produces useless output. An engineer trying to clone a layout doesn't need to hear about "visual tension." A founder asking "does this feel premium?" doesn't need hex values for every border.
+### Level 1: Map (always runs)
 
-### Analytical mode (engineer lens)
+Divide the screenshot into a **5×5 grid**. For each occupied region: what section lives there (nav, hero, sidebar, content, footer, modal, drawer, empty space), its approximate size relative to viewport, and how it relates to neighbors.
 
-Precise, measurable, implementation-ready. Hex values, pixel estimates, component types, layout patterns, spacing systems.
+For every visible element, capture: type (button, input, card, image, icon, text, link, toggle, dropdown, tab, badge, avatar, table, chart, etc.), label/content (exact visible text), position (grid region + relative placement), state (default, hover, active, disabled, selected, error, loading, focused), size (pixel estimate), background color (hex), text color (hex), border (visible/none + radius in px), shadow (none/sm/md/lg), icon if present. Group by section.
 
-Use when: rebuilding/cloning UI, debugging layout, comparing expected vs actual output, extracting design tokens, Claude verifying its own code via screenshot.
+Also note: where the eye goes first. Whether the layout breathes or feels cramped. Whether the hierarchy is clear or competing. What feels intentional vs accidental.
 
-### Qualitative mode (designer lens)
+### Level 2: System (always runs)
 
-Perceptual, emotional, holistic. How the design feels, what it communicates, where visual tension or harmony lives.
+Extract the design system behind what's visible:
 
-Use when: design critique ("does this look good?"), non-UI image used as inspiration, exploring aesthetics or brand alignment, the question is about quality rather than accuracy.
+**Colors:** page bg, card/surface bg, primary action, secondary, text primary, text secondary/muted, border/divider, accent, destructive, success. All hex values. Note whether the palette feels cohesive or patchwork — is there a clear system or are colors ad hoc?
 
-Qualitative mode covers: visual weight distribution (where the eye goes), emotional tone (premium, playful, corporate, clinical, chaotic, calm), hierarchy clarity (is the reading order obvious?), breathing room (spacious and confident or cramped and anxious?), consistency (intentional system or patchwork?), brand signal (what kind of product does this suggest?), friction points (where would a user hesitate?), delight moments (what feels polished or surprising?).
+**Typography:** heading style (size in px, weight, case), body text (size, weight, line-height), caption/small text, font family if identifiable. Note whether the type scale feels intentional — do sizes step consistently or jump randomly?
 
-### Blended mode
+**Spacing and shape:** spacing pattern (tight 4-8px / comfortable 12-16px / spacious 24-32px+), border radius pattern (sharp 0-2px / subtle 4-6px / rounded 8-12px / pill), overall density (compact / comfortable / spacious). Note whether spacing is consistent or inconsistent across sections.
 
-For "rebuild this but better" or "match this vibe" requests, lead with qualitative (what's working, what it communicates, where it falls short), then ground each observation in analytical specifics (the exact spacing, color, or type choices causing those perceptions). This order matters because it mirrors how a senior designer thinks: feel first, then investigate why.
+### Level 3: Blueprint (escalates when building)
 
-## Dynamic step execution
+This level runs when the user needs to implement, rebuild, or clone the UI from the screenshot. The LLM should escalate to Level 3 when the conversation involves writing code from this screenshot.
 
-Running all five analysis steps on every screenshot is like running a full test suite for a typo fix. The skill should scale its effort to match the moment.
+**Layout architecture:** page layout pattern (single column, sidebar+content, dashboard grid, centered container, full-bleed), content layout per section (flex row, flex column, CSS grid with column count, stack), container width (max-width constrained vs full-width), responsive context (mobile <640px / tablet 640-1024px / desktop >1024px), scroll clues (content cut off, sticky header, fixed bottom bar), z-index layers (overlays, modals, dropdowns, toasts).
 
-**Why this matters:** in a fast iteration loop where the user is sending screenshots every 30 seconds, a full five-step analysis kills momentum. During a detailed clone request, skipping steps produces sloppy output. The skill needs to read the room.
+**Interaction map:** primary CTA (the single most important action), secondary actions, navigation pattern (top nav, side nav, tabs, breadcrumbs, bottom bar), form elements and grouping, data display patterns (tables, card grids, lists), visible states (loading, empty, error, success). Note where a user would hesitate or feel friction, and what feels polished.
 
-### The five steps
+## Output
 
-1. **Spatial decomposition**: divide the screen into a 3x3 grid, identify what section lives in each region, note dimensions and relationships between sections. This is the cheapest step and almost always worth running. It anchors everything else.
+Match the output to the context. Don't force headers and sections when a paragraph will do.
 
-2. **Element inventory**: for every visible element, capture type, label, position, state, size, colors, border, shadow, icons. Group by section. This is the most expensive step. Skip or compress it when the user only needs high-level feedback, or when Claude is doing a quick self-verification.
+**Critique/feedback:** lead with what's wrong or what needs attention. Ground each observation in specifics (the exact hex, spacing, or element causing the problem) and how it affects the experience. Don't catalog everything — focus on what matters.
 
-3. **Design system extraction**: infer the color palette, typography scale, spacing pattern, border radius pattern, and overall density. Worth running for any implementation or critique task. Skip for quick verifications.
+**Implementation spec (Level 3):** structured output with section headers — layout map, elements by section, design tokens, layout architecture, interaction map. This is the build document.
 
-4. **Layout architecture**: identify CSS layout patterns (flex, grid, columns), container constraints, responsive breakpoint, scroll behavior, z-index layers. Only needed for implementation tasks.
-
-5. **Interaction map**: identify primary CTA, navigation pattern, form grouping, data display patterns, visible states. Useful for implementation and UX critique. Skip for pure visual feedback.
-
-### Step routing
-
-| Context | Run these | Skip/compress these |
-|---------|-----------|-------------------|
-| Rebuild/clone this UI | All 5, full depth, analytical | None |
-| What's wrong with this? | 1, 3, 5 + qualitative lead | 2 (only flag problem elements), 4 |
-| Claude verifying its own output | 1, 5 (internal, concise) | 2, 3, 4 unless something looks off |
-| Design critique / "does this look good?" | 1, 3 + qualitative primary | 2, 4, 5 |
-| Non-UI inspiration image | Qualitative only | All analytical steps |
-| Extract color palette / tokens | 3 only, full depth | Everything else |
-| Compare two screenshots | 1, 2, 3 on both, then diff | 4, 5 unless relevant |
-| Quick mid-build check ("does this look right?") | 1 quick scan | Everything else unless something is off |
-| What component library is this? | 2, 3 | 1, 4, 5 |
-
-When ambiguous, err toward running more steps rather than fewer. But if the user is in a rapid back-and-forth, compress to the minimum that keeps the conversation moving.
-
-## Step details
-
-### Step 1: spatial decomposition
-
-Divide the screenshot into a 3x3 grid. For each occupied region: what section lives there (nav, hero, sidebar, content, footer, modal, drawer), its approximate size relative to viewport ("full-width, ~60px tall"), and how it relates to neighbors ("sidebar pushes content right"). Output as a layout map.
-
-### Step 2: element inventory
-
-For each visible element, capture: type (button, input, card, image, icon, text, link, toggle, dropdown, tab, badge, avatar, table, chart, etc.), label/content (exact visible text), position (grid region + relative placement), state (default, hover, active, disabled, selected, error, loading, focused), size (sm/md/lg or pixel estimate), background color (hex), text color (hex), border (visible/none + radius: none/sm 2-4px/md 6-8px/lg 12px/pill), shadow (none/sm/md/lg), icon if present. Group by section from step 1.
-
-When compressing: only inventory elements relevant to the user's question or elements that look problematic.
-
-### Step 3: design system extraction
-
-**Colors:** page bg, card/surface bg, primary action, secondary, text primary, text secondary/muted, border/divider, accent, destructive (if visible), success (if visible). Use hex values in analytical mode. In qualitative mode, describe the color's character with the hex in parentheses.
-
-**Typography:** heading style (size in px, weight, case), body text (size, weight, line-height feel), caption/small text, font family if identifiable (name or category).
-
-**Spacing and shape:** spacing pattern (tight 4-8px / comfortable 12-16px / spacious 24-32px+), border radius pattern (sharp 0-2px / subtle 4-6px / rounded 8-12px / pill), overall density (compact / comfortable / spacious).
-
-### Step 4: layout architecture
-
-Page layout (single column, sidebar+content, dashboard grid, centered container, full-bleed), content layout per section (flex row, flex column, css grid with column count, stack, masonry), container width (max-width constrained vs full-width), responsive context (mobile <640px / tablet 640-1024px / desktop >1024px), scroll clues (content cut off, sticky header, fixed bottom bar), z-index layers (overlays, modals, dropdowns, toasts).
-
-### Step 5: interaction map
-
-Primary CTA (the single most important action), secondary actions, navigation pattern (top nav, side nav, tabs, breadcrumbs, bottom bar), form elements and grouping, data display patterns (tables, card grids, lists), visible states (loading, empty, error, success).
-
-## Output formatting
-
-Match the output structure to the context. Don't force headers and sections when a paragraph will do.
-
-**Full analysis** (rebuild/clone): use all five section headers (layout map, element inventory, design tokens, layout architecture, interaction map) plus implementation notes.
-
-**Design critique** (qualitative-led): overall impression, what's working, what needs attention. Ground each observation analytically.
-
-**Quick verification** (mid-build): a brief paragraph. What matches expectations, what doesn't. No headers needed.
-
-**Comparison** (two screenshots): differences, what improved, what regressed, what needs to change.
+**Comparison (two screenshots):** what changed, what improved, what regressed, what still needs work.
 
 ## Core principles
 
-**Be specific in whatever mode you're in.** "A dashboard with some cards" is never acceptable. In analytical mode: "3-column grid, ~280px cards, #F9FAFB bg, 8px radius, subtle shadow." In qualitative mode: "the cards feel weightless, almost floating, which works for monitoring but would feel insubstantial for a financial product." Both are specific. Both are useful. Vague is never useful.
+**Be specific.** "A dashboard with some cards" is never acceptable. "3-column grid, ~280px cards, #F9FAFB bg, 8px radius, subtle shadow — the cards feel weightless, almost floating" is. Every observation needs both the measurement and the judgment.
 
 **Hex over color names, pixels over vague sizes.** Say #3B82F6 not "blue." Say ~16px not "some." If uncertain, give your best estimate and note it.
 
@@ -250,43 +189,38 @@ Match the output structure to the context. Don't force headers and sections when
 
 **Call out the non-obvious.** Custom illustrations, unusual component patterns, implied animations, dynamic vs static data. These are the things that break implementations.
 
-**Match the user's pace.** Rapid iteration loop = concise. Exploring design direction = expansive. Debugging = diagnostic. The framework is the thinking tool, not the mandatory output format.
+**Match the user's pace.** Rapid iteration = concise output. Detailed clone request = exhaustive. But the analysis depth (Levels 1+2) is always the same — what changes is how much you output, not how much you see.
 
 ## Self-rating
 
 ### Internal, silent, every time
 
-After completing any analysis, rate your own output 0-10 across these criteria: spatial accuracy (did the grid correctly map the layout sections?), specificity (are colors hex, sizes pixel-estimated, components precisely named?), mode match (did the analysis mode match what the user needed?), step selection (were the right steps run at the right depth?), actionability (could someone implement or act on this analysis alone?). Average the scores.
+After completing any analysis, rate your own output 0-10 across these criteria: spatial accuracy (did the grid correctly map the layout?), specificity (are colors hex, sizes pixel-estimated, components precisely named?), level selection (did the right levels run?), taste (did you catch what feels off, not just what's measurably wrong?), actionability (could someone act on this analysis?). Average the scores.
 
-This rating is strictly internal. It flows into telemetry as the `RATING` field in the epilogue, but it is never shown to the user as "Self-rating: X/10" or any equivalent. The reason: displaying a score after every analysis is noisy and self-congratulatory. It adds nothing for the user and trains them to ignore it, which means the one time the score actually matters (a significant miss), they won't notice.
+This rating is strictly internal. It flows into telemetry as the `RATING` field in the epilogue, but it is never shown to the user. Displaying a score after every analysis is noisy and self-congratulatory.
 
 ### When to surface feedback
 
-There are exactly three situations where the skill should involve the user in quality feedback. Outside of these, stay quiet about quality.
+There are exactly three situations where the skill should involve the user in quality feedback. Outside of these, stay quiet.
 
-**Trigger 1: User correction.** If the user corrects the analysis — "no, that's wrong," "you missed the nav," "the padding is off," "that's not a sidebar" — fix the issue, then note briefly: "logged that miss so clearshot gets better at catching [the specific thing]." No question asked, no form presented. Automatically write a field report (see below). This is the highest-signal feedback because it comes from real frustration with a real gap. Capturing it without friction means it actually gets captured.
+**Trigger 1: User correction.** If the user corrects the analysis — "no, that's wrong," "you missed the nav," "the padding is off" — fix the issue, then note briefly: "logged that miss so clearshot gets better at catching [the specific thing]." Automatically write a field report (see below).
 
-**Trigger 2: After a significant rebuild completes.** If the user asked for a full rebuild or clone (all 5 analysis steps ran) and the implementation is done, ask one casual question: "clearshot nailed it or missed something? just curious." One shot. Not a form. Not five criteria. Not a rating scale. The question is deliberately low-pressure because post-implementation is when users have the clearest picture of what the analysis got right or wrong, but they won't engage with anything that feels like a survey.
+**Trigger 2: After a rebuild completes.** If Level 3 ran and the implementation is done, ask one casual question: "clearshot nailed it or missed something? just curious." One shot. Not a form.
 
-**Trigger 3: Session wind-down.** If 3 or more analyses happened in a single session and the conversation is winding down (the user says thanks, goodbye, shifts context away from UI work, or goes idle), append a quiet note: "ran clearshot X times this session. anything it kept getting wrong?" Only if 3+ analyses occurred. Never mid-flow. This catches patterns that no single correction would surface — recurring blind spots that the user tolerated individually but that add up.
+**Trigger 3: Session wind-down.** If 3 or more analyses happened in a single session and the conversation is winding down, append: "ran clearshot X times this session. anything it kept getting wrong?" Only if 3+ analyses occurred. Never mid-flow.
 
-**Never trigger feedback in these situations:**
-- After quick checks ("does this look right?" where only step 1 ran). The user is in flow. Interrupting flow for meta-conversation about analysis quality is the opposite of helpful.
-- After qualitative-only analyses. These are subjective by nature; asking "was my subjective read correct?" is circular.
-- When the user is in rapid iteration mode (multiple screenshots in quick succession). Speed is the priority. Anything that isn't "here's what I see" is drag.
-- After every single analysis. This was the old behavior. It was annoying. Don't do it.
+**Never trigger feedback:** during rapid iteration, after every single analysis, or when the user is clearly in flow.
 
 ### Field reports
 
-Write to `~/.clearshot/feedback/YYYY-MM-DD-{slug}.md`, but only on these conditions:
+Write to `~/.clearshot/feedback/YYYY-MM-DD-{slug}.md`, only when:
 
-- **User correction**: automatic, no permission needed. The correction is the permission. Format:
+- **User correction**: automatic. Format:
 
 ```
 # {Title describing the miss}
 **What was analyzed:** {screenshot description}
-**Mode used:** {analytical/qualitative/blended}
-**Steps run:** {1,2,3,4,5}
+**Levels run:** {1,2 or 1,2,3}
 **What was missed:** {specific element or detail the user corrected}
 **Correction:** {what the user said}
 **Internal rating:** {X}/10
@@ -295,13 +229,13 @@ Write to `~/.clearshot/feedback/YYYY-MM-DD-{slug}.md`, but only on these conditi
 
 - **User explicitly says something was wrong** (via trigger 2 or 3 response): write a field report with the user's feedback included.
 
-- **Internal rating below 5**: write a field report silently. A score below 5 means the analysis had a significant structural miss (wrong layout mapping, missed major sections, completely wrong mode). These are rare enough that logging them won't create noise, but important enough that they shouldn't be lost.
+- **Internal rating below 5**: write a field report silently.
 
-Field reports are never written for routine analyses that went fine. The signal-to-noise ratio of the feedback directory matters more than its completeness.
+Field reports are never written for routine analyses that went fine.
 
 ## Epilogue
 
-After analysis is complete, log the event. The self-rating is always computed internally (see the self-rating section) and always included here as the `RATING` field — this is how it reaches telemetry silently without ever being displayed to the user. Substitute actual values from your analysis for the placeholder variables (OUTCOME, MODE_USED, STEPS_RUN, RATING).
+After analysis is complete, log the event. Substitute actual values for the placeholder variables.
 
 ```bash
 _CS_TEL_END=$(date +%s)
@@ -312,9 +246,9 @@ if [ "$_CS_TEL_MODE" != "off" ]; then
   _CS_ARCH="$(uname -m)"
   _CS_INSTALL_ID="$(printf '%s-%s' "$(hostname)" "$(whoami)" | shasum -a 256 | awk '{print $1}')"
   _CS_ID_JSON="\"$_CS_INSTALL_ID\""
-  printf '{"v":1,"ts":"%s","version":"%s","os":"%s","arch":"%s","duration_s":%s,"outcome":"%s","mode":"%s","steps_run":"%s","self_rating":%s,"installation_id":%s}\n' \
+  printf '{"v":1,"ts":"%s","version":"%s","os":"%s","arch":"%s","duration_s":%s,"outcome":"%s","levels_run":"%s","self_rating":%s,"installation_id":%s}\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "CS_VERSION" "$_CS_OS" "$_CS_ARCH" \
-    "$_CS_DUR" "OUTCOME" "MODE_USED" "STEPS_RUN" "RATING" "$_CS_ID_JSON" \
+    "$_CS_DUR" "OUTCOME" "LEVELS_RUN" "RATING" "$_CS_ID_JSON" \
     >> "$HOME/.clearshot/analytics/usage.jsonl" 2>/dev/null || true
 
   # Sync to Convex (rate-limited, background)
@@ -349,6 +283,5 @@ Replace these placeholders with actual values from the analysis:
 - `_CS_TEL_START` — the value from preamble output
 - `CS_VERSION` — the version from preamble output
 - `OUTCOME` — "success", "error", or "abort"
-- `MODE_USED` — "analytical", "qualitative", or "blended"
-- `STEPS_RUN` — comma-separated step numbers, e.g. "1,2,3"
+- `LEVELS_RUN` — "1,2" or "1,2,3"
 - `RATING` — the self-rating number (0-10)
