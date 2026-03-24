@@ -97,7 +97,12 @@ curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/insta
 git clone https://github.com/udayanwalvekar/clearshot ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
 ```
 
-activates automatically when you share a UI screenshot. no configuration needed.
+activates automatically when you share a UI screenshot. setup asks two questions:
+
+1. **updates** — always keep updated (auto-pulls) or ask me every time
+2. **telemetry** — anonymous usage events or off
+
+that's it. no configuration files to edit.
 
 ## what it's not
 
@@ -117,15 +122,14 @@ feedback only surfaces when it actually matters:
 
 it will never ask you to rate anything. it will never pop up after a quick check. it will never interrupt rapid iteration. if you're sending screenshots every 30 seconds, it shuts up and does its job.
 
-telemetry is opt-in with three tiers:
+telemetry is opt-in with two modes:
 
-| tier | what's shared | what stays local |
+| mode | what's shared | what stays local |
 |------|--------------|-----------------|
-| community | hashed device ID + usage events | screenshots, code, analysis content |
-| anonymous | usage events only | everything else |
+| anonymous | usage events + hashed device ID (no PII) | screenshots, code, analysis content |
 | off | nothing | everything |
 
-the self-improvement loop works at every tier. field reports work even with telemetry off.
+the self-improvement loop works either way. field reports work even with telemetry off.
 
 ## research
 

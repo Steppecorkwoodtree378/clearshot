@@ -17,7 +17,7 @@ RESET='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$HOME/.claude/skills/clearshot"
 STATE_DIR="$HOME/.clearshot"
-VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "1.0.0")"
+VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "1.2.0")"
 
 clear 2>/dev/null || true
 
@@ -182,10 +182,10 @@ fi
 if [ ! -f "$STATE_DIR/config.yaml" ]; then
   cat > "$STATE_DIR/config.yaml" << 'YAML'
 telemetry: off
-update_check: true
+update_mode: ask
 YAML
   pause 0.2
-  echo -e "   ${GREEN}✓${RESET}  config created      ${DIM}telemetry off by default${RESET}"
+  echo -e "   ${GREEN}✓${RESET}  config created      ${DIM}defaults set${RESET}"
 else
   pause 0.2
   echo -e "   ${GREEN}✓${RESET}  config preserved    ${DIM}your settings are safe${RESET}"
@@ -222,17 +222,87 @@ echo -e "   ${WHITE}${BOLD}└────────────────�
 echo ""
 pause 0.3
 
+# ─── onboarding: two quick questions ──────────────────────────
+
+source "$SCRIPT_DIR/bin/picker.sh"
+
+# helper to write config values
+_cs_set_config() {
+  local key="$1" val="$2"
+  if [ -f "$STATE_DIR/config.yaml" ] && grep -qE "^${key}:" "$STATE_DIR/config.yaml" 2>/dev/null; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sed -i '' "s/^${key}:.*/${key}: ${val}/" "$STATE_DIR/config.yaml"
+    else
+      sed -i "s/^${key}:.*/${key}: ${val}/" "$STATE_DIR/config.yaml"
+    fi
+  elif [ -f "$STATE_DIR/config.yaml" ]; then
+    echo "${key}: ${val}" >> "$STATE_DIR/config.yaml"
+  else
+    echo "${key}: ${val}" > "$STATE_DIR/config.yaml"
+  fi
+}
+
+echo -e "   ${BOLD}two quick questions${RESET} ${DIM}(↑/↓ + enter)${RESET}"
+echo ""
+pause 0.2
+
+# Question 1: Updates
+echo -e "   ${CYAN}①${RESET}  ${BOLD}how should clearshot update?${RESET}"
+echo ""
+
+pick 0 \
+  "Always keep updated    auto-pull new versions" \
+  "Ask me every time      prompt before updating"
+
+if [ "$PICK_INDEX" -eq -1 ] || [ "$PICK_INDEX" -eq 1 ]; then
+  _UPDATE_MODE="ask"
+else
+  _UPDATE_MODE="always"
+fi
+_cs_set_config "update_mode" "$_UPDATE_MODE"
+
+echo ""
+if [ "$_UPDATE_MODE" = "always" ]; then
+  echo -e "   ${GREEN}✓${RESET}  updates: ${BOLD}auto${RESET}"
+else
+  echo -e "   ${GREEN}✓${RESET}  updates: ${BOLD}ask every time${RESET}"
+fi
+echo ""
+pause 0.3
+
+# Question 2: Telemetry
+echo -e "   ${CYAN}②${RESET}  ${BOLD}anonymous telemetry?${RESET}"
+echo -e "      ${DIM}usage events only. no screenshots, code, or content.${RESET}"
+echo ""
+
+pick 1 \
+  "Anonymous              usage events + hashed device ID (no PII)" \
+  "Off                    nothing leaves your machine"
+
+if [ "$PICK_INDEX" -eq -1 ] || [ "$PICK_INDEX" -eq 1 ]; then
+  _TEL_MODE="off"
+else
+  _TEL_MODE="anonymous"
+fi
+_cs_set_config "telemetry" "$_TEL_MODE"
+touch "$STATE_DIR/.telemetry-prompted"
+
+echo ""
+if [ "$_TEL_MODE" = "anonymous" ]; then
+  echo -e "   ${GREEN}✓${RESET}  telemetry: ${BOLD}anonymous${RESET}"
+else
+  echo -e "   ${GREEN}✓${RESET}  telemetry: ${BOLD}off${RESET}"
+fi
+echo ""
+pause 0.3
+
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
+echo ""
+
 echo -e "   ${BOLD}what happens next${RESET}"
 echo ""
 echo -e "   ${CYAN}→${RESET}  drop a UI screenshot into claude code"
 echo -e "      clearshot activates automatically"
-echo ""
-echo -e "   ${CYAN}→${RESET}  first time, it'll ask about telemetry"
-echo -e "      ${DIM}three tiers: community · anonymous · off${RESET}"
-echo -e "      ${DIM}no screenshots or code ever leave your machine${RESET}"
-echo ""
-echo -e "   ${CYAN}→${RESET}  updates happen automatically"
-echo -e "      ${DIM}you'll be nudged when there's a new version${RESET}"
 echo ""
 pause 0.3
 

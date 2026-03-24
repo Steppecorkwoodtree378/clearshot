@@ -14,27 +14,43 @@ _CS_VER=""
 [ -n "$_CS_DIR" ] && [ -f "$_CS_DIR/VERSION" ] && _CS_VER="$(cat "$_CS_DIR/VERSION" | tr -d '[:space:]')"
 _CS_STATE="$HOME/.clearshot"
 mkdir -p "$_CS_STATE/analytics" "$_CS_STATE/feedback"
+_CS_UPDATE_MODE="ask"
+[ -f "$_CS_STATE/config.yaml" ] && _CS_UPDATE_MODE=$(grep -E '^update_mode:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "ask")
 if [ -n "$_CS_VER" ]; then
-  _CS_UPD_CHECK="true"
-  [ -f "$_CS_STATE/config.yaml" ] && _CS_UPD_CHECK=$(grep -E '^update_check:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "true")
-  if [ "$_CS_UPD_CHECK" = "true" ]; then
-    _CS_CACHE="$_CS_STATE/last-update-check"
-    _STALE=""
-    [ -f "$_CS_CACHE" ] && _STALE=$(find "$_CS_CACHE" -mmin +60 2>/dev/null || true)
-    if [ ! -f "$_CS_CACHE" ] || [ -n "$_STALE" ]; then
-      _CS_REMOTE=$(curl -sf --max-time 5 "https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/VERSION" 2>/dev/null | tr -d '[:space:]' || true)
-      if echo "$_CS_REMOTE" | grep -qE '^[0-9]+\.[0-9.]+$' 2>/dev/null; then
-        if [ "$_CS_VER" != "$_CS_REMOTE" ]; then
+  _CS_CACHE="$_CS_STATE/last-update-check"
+  _STALE=""
+  [ -f "$_CS_CACHE" ] && _STALE=$(find "$_CS_CACHE" -mmin +60 2>/dev/null || true)
+  if [ ! -f "$_CS_CACHE" ] || [ -n "$_STALE" ]; then
+    _CS_REMOTE=$(curl -sf --max-time 5 "https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/VERSION" 2>/dev/null | tr -d '[:space:]' || true)
+    if echo "$_CS_REMOTE" | grep -qE '^[0-9]+\.[0-9.]+$' 2>/dev/null; then
+      if [ "$_CS_VER" != "$_CS_REMOTE" ]; then
+        if [ "$_CS_UPDATE_MODE" = "always" ]; then
+          # Auto-update: pull silently
+          cd "$_CS_DIR" && git pull origin main --quiet 2>/dev/null
+          _CS_VER="$(cat "$_CS_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+          echo "CS_AUTO_UPDATED: $_CS_VER"
+          echo "UP_TO_DATE $_CS_VER" > "$_CS_CACHE"
+        else
           echo "UPGRADE_AVAILABLE $_CS_VER $_CS_REMOTE" > "$_CS_CACHE"
           echo "CS_UPGRADE: UPGRADE_AVAILABLE $_CS_VER $_CS_REMOTE"
-        else
-          echo "UP_TO_DATE $_CS_VER" > "$_CS_CACHE"
         fi
+      else
+        echo "UP_TO_DATE $_CS_VER" > "$_CS_CACHE"
       fi
-    else
-      _CACHED="$(cat "$_CS_CACHE" 2>/dev/null || true)"
-      case "$_CACHED" in UPGRADE_AVAILABLE*) echo "CS_UPGRADE: $_CACHED" ;; esac
     fi
+  else
+    _CACHED="$(cat "$_CS_CACHE" 2>/dev/null || true)"
+    case "$_CACHED" in UPGRADE_AVAILABLE*)
+      if [ "$_CS_UPDATE_MODE" = "always" ]; then
+        cd "$_CS_DIR" && git pull origin main --quiet 2>/dev/null
+        _CS_VER="$(cat "$_CS_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
+        echo "CS_AUTO_UPDATED: $_CS_VER"
+        echo "UP_TO_DATE $_CS_VER" > "$_CS_CACHE"
+      else
+        echo "CS_UPGRADE: $_CACHED"
+      fi
+      ;;
+    esac
   fi
 fi
 
@@ -47,6 +63,7 @@ _CS_TEL="off"
 _CS_SESSION_ID="$$-$(date +%s)"
 _CS_TEL_START=$(date +%s)
 
+echo "CS_UPDATE_MODE: $_CS_UPDATE_MODE"
 echo "CS_TEL_PROMPTED: $_CS_TEL_PROMPTED"
 echo "CS_TELEMETRY: ${_CS_TEL:-off}"
 echo "CS_SESSION_ID: $_CS_SESSION_ID"
@@ -56,21 +73,28 @@ echo "CS_VERSION: ${_CS_VER:-unknown}"
 
 ### Interpreting preamble output
 
+**If `CS_AUTO_UPDATED` appears:**
+The skill auto-updated itself. Mention it briefly: "clearshot updated to v{version}" and continue with the analysis. No action needed.
+
 **If `CS_UPGRADE` shows `UPGRADE_AVAILABLE <old> <new>`:**
-Tell the user a new version is available and offer three options:
-1. **"Update now"** — run `cd ~/.claude/skills/clearshot && git pull origin main`
-2. **"Not now"** — continue with current version
-3. **"Never ask"** — run: `sed -i '' 's/^update_check:.*/update_check: false/' ~/.clearshot/config.yaml`
+The user has `update_mode: ask`. Tell them a new version is available and instruct them to run the interactive update picker:
+
+"clearshot v{new} is available (you're on v{old}):"
+
+Then instruct them to type: `! ~/.claude/skills/clearshot/bin/update-prompt.sh {old} {new}`
+
+The script lets them choose "Update now" or "Always update" (which also switches to auto-update mode for the future). If the user skips it, continue with the analysis on the current version.
 
 **If `CS_TEL_PROMPTED` is `no`:**
-Before proceeding with analysis, ask the user about telemetry:
+Before proceeding with analysis, tell the user to run the interactive telemetry picker. Say something brief like:
 
-"This skill can send anonymous usage data (which analysis mode was used, duration, self-rating) to help improve it. No screenshots, code, or content is ever sent. Choose a tier:"
-1. **Community** — usage events with a hashed device ID (for retention tracking)
-2. **Anonymous** — usage events with no identifier
-3. **Off** — nothing leaves your machine
+"Quick one-time setup — pick your telemetry preference (arrow keys + enter):"
 
-Then write their choice to `~/.clearshot/config.yaml` (replace the `telemetry:` line) and touch `~/.clearshot/.telemetry-prompted`.
+Then instruct them to type: `! ~/.claude/skills/clearshot/bin/telemetry-setup.sh`
+
+The script handles everything: displays an interactive arrow-key picker with two options (Anonymous, Off), writes the choice to `~/.clearshot/config.yaml`, and touches `~/.clearshot/.telemetry-prompted`. Do NOT list the options yourself or ask the user to type their choice — the script provides the full interactive experience.
+
+After the user runs it, proceed with the analysis. If the user declines to run it or skips, proceed anyway with telemetry off.
 
 # Screenshot analysis
 
@@ -258,17 +282,13 @@ After analysis is complete, log the event. The self-rating is always computed in
 
 ```bash
 _CS_TEL_END=$(date +%s)
-_CS_DUR=$(( _CS_TEL_END - CS_TEL_START ))
-_CS_TEL_TIER=$(grep -E '^telemetry:' "$HOME/.clearshot/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "off")
-if [ "$_CS_TEL_TIER" != "off" ]; then
+_CS_DUR=$(( _CS_TEL_END - _CS_TEL_START ))
+_CS_TEL_MODE=$(grep -E '^telemetry:' "$HOME/.clearshot/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "off")
+if [ "$_CS_TEL_MODE" != "off" ]; then
   _CS_OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
   _CS_ARCH="$(uname -m)"
-  _CS_INSTALL_ID=""
-  if [ "$_CS_TEL_TIER" = "community" ]; then
-    _CS_INSTALL_ID="$(printf '%s-%s' "$(hostname)" "$(whoami)" | shasum -a 256 | awk '{print $1}')"
-  fi
-  _CS_ID_JSON="null"
-  [ -n "$_CS_INSTALL_ID" ] && _CS_ID_JSON="\"$_CS_INSTALL_ID\""
+  _CS_INSTALL_ID="$(printf '%s-%s' "$(hostname)" "$(whoami)" | shasum -a 256 | awk '{print $1}')"
+  _CS_ID_JSON="\"$_CS_INSTALL_ID\""
   printf '{"v":1,"ts":"%s","version":"%s","os":"%s","arch":"%s","duration_s":%s,"outcome":"%s","mode":"%s","steps_run":"%s","self_rating":%s,"installation_id":%s}\n' \
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "CS_VERSION" "$_CS_OS" "$_CS_ARCH" \
     "$_CS_DUR" "OUTCOME" "MODE_USED" "STEPS_RUN" "RATING" "$_CS_ID_JSON" \
@@ -300,7 +320,7 @@ fi
 ```
 
 Replace these placeholders with actual values from the analysis:
-- `CS_TEL_START` — the value from preamble output
+- `_CS_TEL_START` — the value from preamble output
 - `CS_VERSION` — the version from preamble output
 - `OUTCOME` — "success", "error", or "abort"
 - `MODE_USED` — "analytical", "qualitative", or "blended"
