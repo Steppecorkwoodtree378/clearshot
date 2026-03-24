@@ -3,10 +3,15 @@ convex/_generated/
 .env.local
 .env
 .DS_Store
+package-lock.json
 
-# Convex auto-generated skills
+# Convex auto-generated
 .agents/
-.claude/
 skills/
 skills-lock.json
 AGENTS.md
+
+# Claude Code project files (auto-generated, not part of the skill)
+CLAUDE.md
+.claude/
+.claude-plugin/
