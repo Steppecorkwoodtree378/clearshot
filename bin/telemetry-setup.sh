@@ -66,5 +66,5 @@ if [ "$CHOICE" = "off" ]; then
 else
   printf "  ${DIM}you can change this anytime:${RESET}\n"
 fi
-printf "  ${DIM}! ~/.claude/skills/clearshot/bin/telemetry-setup.sh${RESET}\n"
+printf "  ${DIM}re-run anytime: ! ${SCRIPT_DIR}/telemetry-setup.sh${RESET}\n"
 echo

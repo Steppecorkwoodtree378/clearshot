@@ -1,141 +1,75 @@
-# clearshot 📸
+# clearshot
 
-Structured screenshot intelligence for AI coding tools.
+structured screenshot intelligence for AI coding tools.
 
-## the problem
+## install
 
-ai sucks at seeing screenshots.
+```
+npx clearshot
+```
 
-paste a screenshot into claude code, cursor, copilot, whatever. ask it to rebuild or tell you what's wrong. it says "i see a dashboard with some cards and a sidebar."
+or
 
-meanwhile you're staring at a broken button, inconsistent border radius, 6px padding where 8px should be, and a type scale that switches between 14px and 16px for no reason.
+```
+npx skills add udayanwalvekar/clearshot
+```
 
-the AI sees none of it. until you say "the button is broken," it doesn't know the button is broken.
+or
 
-this isn't a model intelligence problem. it's a pipeline problem. the AI goes from raw pixels to code in one cognitive leap and drops details every single time. you end up spending 3-5 rounds saying "no, the padding is wrong." "no, look at the nav again." "no, the border radius doesn't match."
+```
+curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/install.sh | bash
+```
 
-## how companies already solved this
+activates automatically when you share a UI screenshot. first time it runs, it asks two questions (update preference + telemetry) and you're done.
 
-replit, lovable, microsoft. all of them solved this already. none of them send a raw screenshot to an LLM and say figure it out.
+## what it does
 
-they all run structured analysis first. spatial coordinates, component hierarchies, design tokens. then the model gets that as context.
+AI sucks at seeing screenshots. paste one into claude code and ask it to rebuild something — it says "i see a dashboard with some cards and a sidebar." meanwhile you're staring at a broken button, inconsistent border radius, and 6px padding where 8px should be.
 
-microsoft's omniparser took GPT-4V from 70.5% to 93.8% accuracy just by doing this.
+clearshot fixes this by running structured analysis *before* the AI responds. not "blue color" but `#3B82F6`. not "some spacing" but `8px gap`. not "a button" but `sm/rounded-md/border-gray-200/shadow-sm`.
 
-but this intelligence is locked inside their platforms. if you're using claude code or codex or anything general purpose, you get none of it.
-
-## what clearshot does
-
-open source skill for claude code. install it once.
-
-every time you or the agent takes a screenshot, it doesn't just "look" at it. it tells the model exactly what's there.
-
-padding values in pixels. not "blue color" but the actual hex code. not "some spacing" but 8px gap between the label and the input. border radius, font weight, shadow values. everything the model was guessing at before, it now knows.
-
-### it's not just deterministic
-
-there's also a qualitative path. a taste layer. does the hierarchy feel clear. is the visual weight distributed right. is there enough breathing room. does this feel like a premium product or a hackathon project.
-
-because sometimes the question isn't "what are the pixel values" but "does this feel right." clearshot handles both.
-
-### it knows when to stay quiet
-
-if you send a screenshot of a chart, or a meme, or an architecture diagram, and you're not building frontend, the skill stays quiet. it only activates when the image is a UI and the conversation is about building or critiquing that UI.
-
-within the analysis itself, there are exit paths at every step. if a quick spatial scan is enough, it stops there. your agent isn't burning tokens running a full pipeline when you just asked "does this look right."
-
-## the analysis pipeline
-
-five steps, but only the ones you need:
+five-step pipeline, runs only what's needed:
 
 | step | what it extracts | when it runs |
 |------|-----------------|--------------|
-| spatial decomposition | 3x3 grid mapping of page sections | almost always |
+| spatial decomposition | 3×3 grid mapping of page sections | almost always |
 | element inventory | every element: type, position, state, colors, borders | full rebuilds |
 | design system extraction | color palette, type scale, spacing patterns | rebuilds + critique |
 | layout architecture | CSS patterns, container constraints, responsive context | rebuilds only |
 | interaction map | CTAs, navigation, forms, visible states | rebuilds + UX critique |
 
-"clone this" → all 5 steps. "does this look right?" → step 1 only. "what's wrong?" → steps 1, 3, 5, flags problems only.
+"clone this" → all 5 steps. "does this look right?" → step 1 only. it reads the room.
 
-## analysis modes
+## two modes
 
-**analytical** (engineer lens): hex values, pixel measurements, component types, layout patterns, spacing systems. for rebuilding, cloning, debugging.
+**analytical** (engineer lens): hex values, pixel measurements, component types, layout patterns. for rebuilding, cloning, debugging.
 
-**qualitative** (designer lens): visual weight, hierarchy clarity, breathing room, brand signal, friction points. for "does this feel right?" conversations.
+**qualitative** (designer lens): visual weight, hierarchy clarity, breathing room, brand signal. for "does this feel right?" conversations.
 
-**blended**: qualitative lead, analytically grounded. for "rebuild this but make it feel more premium."
+picks the right one automatically, or blends both.
 
-the AI picks the right one based on the conversation.
+## it knows when to shut up
 
-## install
+screenshot of a meme? stays quiet. architecture diagram? stays quiet. photo of your lunch? definitely stays quiet. only activates on UI screenshots when you're building or critiquing frontend.
 
-pick your favorite:
+## privacy
 
-```bash
-# claude code skills (recommended)
-npx skills add udayanwalvekar/clearshot
-```
+everything runs locally. no screenshots or code ever leave your machine.
 
-```bash
-# one command
-npx clearshot
-```
+telemetry is opt-in — you choose during first run:
 
-```bash
-# claude code plugin
-claude plugin install clearshot
-```
+| mode | what's sent |
+|------|------------|
+| anonymous | usage events + hashed device ID (no PII) |
+| off | nothing |
 
-```bash
-# curl
-curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/install.sh | bash
-```
-
-```bash
-# manual
-git clone https://github.com/udayanwalvekar/clearshot ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
-```
-
-activates automatically when you share a UI screenshot. setup asks two questions:
-
-1. **updates** — always keep updated (auto-pulls) or ask me every time
-2. **telemetry** — anonymous usage events or off
-
-that's it. no configuration files to edit.
-
-## what it's not
-
-- not a screenshot-to-code generator. it's the analysis layer that makes any code generation better.
-- not a figma plugin. works on raw screenshots, no design file needed.
-- not a hosted service. runs locally. no screenshots leave your machine.
-
-## self-improvement
-
-clearshot rates its own output internally after every analysis. you never see the score. it's silent. the rating flows into telemetry so the skill gets better over time without ever interrupting your flow.
-
-feedback only surfaces when it actually matters:
-
-- **you correct the analysis** → clearshot logs the miss automatically. no question asked, just a brief "logged that, won't miss it next time."
-- **after a full rebuild completes** → one casual question: "clearshot nailed it or missed something?" that's it.
-- **session winding down after 3+ analyses** → "anything it kept getting wrong?" only if you ran it enough times for the question to be worth asking.
-
-it will never ask you to rate anything. it will never pop up after a quick check. it will never interrupt rapid iteration. if you're sending screenshots every 30 seconds, it shuts up and does its job.
-
-telemetry is opt-in with two modes:
-
-| mode | what's shared | what stays local |
-|------|--------------|-----------------|
-| anonymous | usage events + hashed device ID (no PII) | screenshots, code, analysis content |
-| off | nothing | everything |
-
-the self-improvement loop works either way. field reports work even with telemetry off.
+no network calls happen until you explicitly opt in.
 
 ## research
 
-the approach builds on production systems and academic research:
+builds on production systems and academic research:
 
-- **microsoft omniparser** — YOLOv8 detection + OCR + icon captioning. improved GPT-4V from 70.5% to 93.8%. [paper](https://arxiv.org/abs/2408.00203) · [github](https://github.com/microsoft/OmniParser)
+- **microsoft omniparser** — improved GPT-4V from 70.5% to 93.8% with structured analysis. [paper](https://arxiv.org/abs/2408.00203)
 - **dcgen** — recursive divide-and-conquer screenshot decomposition. [paper](https://arxiv.org/abs/2405.16569)
 - **replit** — multi-agent verification loop with structured screenshot comparison
 - **google screenai** — UI-specific vision-language model. [blog](https://research.google/blog/screenai-a-visual-language-model-for-ui-and-infographics-understanding/)

@@ -8,15 +8,35 @@ description: "Structured analysis of UI screenshots: spatial decomposition, elem
 Run this bash block first, before any analysis:
 
 ```bash
-# ─── Version check ────────────────────────────────────────────
-_CS_DIR="$(cd "$(dirname "$(find ~/.claude/skills -name SKILL.md -path '*/clearshot/*' -print -quit 2>/dev/null)")" 2>/dev/null && pwd || echo "")"
+# ─── Find skill directory (works from any install path) ───────
+_CS_DIR=""
+for _d in "$HOME/.claude/skills/clearshot" "$HOME/.agents/skills/clearshot"; do
+  [ -f "$_d/SKILL.md" ] && _CS_DIR="$_d" && break
+done
+# fallback: search
+[ -z "$_CS_DIR" ] && _CS_DIR="$(cd "$(dirname "$(find "$HOME/.claude" "$HOME/.agents" -name SKILL.md -path '*/clearshot/*' -print -quit 2>/dev/null)")" 2>/dev/null && pwd || echo "")"
 _CS_VER=""
 [ -n "$_CS_DIR" ] && [ -f "$_CS_DIR/VERSION" ] && _CS_VER="$(cat "$_CS_DIR/VERSION" | tr -d '[:space:]')"
 _CS_STATE="$HOME/.clearshot"
 mkdir -p "$_CS_STATE/analytics" "$_CS_STATE/feedback"
+
+# ─── First-run detection ─────────────────────────────────────
+_CS_FIRST_RUN="no"
+[ ! -f "$_CS_STATE/config.yaml" ] && _CS_FIRST_RUN="yes"
+
+# ─── Read config (only if it exists) ─────────────────────────
 _CS_UPDATE_MODE="ask"
-[ -f "$_CS_STATE/config.yaml" ] && _CS_UPDATE_MODE=$(grep -E '^update_mode:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "ask")
-if [ -n "$_CS_VER" ]; then
+_CS_TEL="off"
+_CS_TEL_PROMPTED="no"
+if [ -f "$_CS_STATE/config.yaml" ]; then
+  _CS_UPDATE_MODE=$(grep -E '^update_mode:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "ask")
+  _CS_TEL=$(grep -E '^telemetry:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "off")
+fi
+[ -f "$_CS_STATE/.telemetry-prompted" ] && _CS_TEL_PROMPTED="yes"
+
+# ─── Version check (only if user opted into updates) ─────────
+# No network calls until config exists and user has chosen
+if [ -n "$_CS_VER" ] && [ "$_CS_FIRST_RUN" = "no" ]; then
   _CS_CACHE="$_CS_STATE/last-update-check"
   _STALE=""
   [ -f "$_CS_CACHE" ] && _STALE=$(find "$_CS_CACHE" -mmin +60 2>/dev/null || true)
@@ -25,7 +45,6 @@ if [ -n "$_CS_VER" ]; then
     if echo "$_CS_REMOTE" | grep -qE '^[0-9]+\.[0-9.]+$' 2>/dev/null; then
       if [ "$_CS_VER" != "$_CS_REMOTE" ]; then
         if [ "$_CS_UPDATE_MODE" = "always" ]; then
-          # Auto-update: pull silently
           cd "$_CS_DIR" && git pull origin main --quiet 2>/dev/null
           _CS_VER="$(cat "$_CS_DIR/VERSION" 2>/dev/null | tr -d '[:space:]')"
           echo "CS_AUTO_UPDATED: $_CS_VER"
@@ -54,15 +73,12 @@ if [ -n "$_CS_VER" ]; then
   fi
 fi
 
-# ─── Telemetry config ────────────────────────────────────────
-_CS_TEL_PROMPTED=$([ -f "$_CS_STATE/.telemetry-prompted" ] && echo "yes" || echo "no")
-_CS_TEL="off"
-[ -f "$_CS_STATE/config.yaml" ] && _CS_TEL=$(grep -E '^telemetry:' "$_CS_STATE/config.yaml" 2>/dev/null | awk '{print $2}' | tr -d '[:space:]' || echo "off")
-
 # ─── Session tracking ────────────────────────────────────────
 _CS_SESSION_ID="$$-$(date +%s)"
 _CS_TEL_START=$(date +%s)
 
+echo "CS_FIRST_RUN: $_CS_FIRST_RUN"
+echo "CS_SKILL_DIR: $_CS_DIR"
 echo "CS_UPDATE_MODE: $_CS_UPDATE_MODE"
 echo "CS_TEL_PROMPTED: $_CS_TEL_PROMPTED"
 echo "CS_TELEMETRY: ${_CS_TEL:-off}"
@@ -73,6 +89,17 @@ echo "CS_VERSION: ${_CS_VER:-unknown}"
 
 ### Interpreting preamble output
 
+**If `CS_FIRST_RUN` is `yes`:**
+This is the first time clearshot is running — no config exists yet. Before doing any analysis, tell the user to run the onboarding setup. Say something brief like:
+
+"clearshot needs a quick first-run setup (two questions, arrow keys + enter):"
+
+Then instruct them to type: `! {CS_SKILL_DIR}/bin/onboarding.sh`
+
+Use the actual `CS_SKILL_DIR` value from the preamble output (e.g. `~/.claude/skills/clearshot` or `~/.agents/skills/clearshot`). The script asks about update preference and telemetry, writes the config, and completes in seconds.
+
+After the user runs it, proceed with the analysis. If the user declines, proceed anyway — no network calls will happen without config.
+
 **If `CS_AUTO_UPDATED` appears:**
 The skill auto-updated itself. Mention it briefly: "clearshot updated to v{version}" and continue with the analysis. No action needed.
 
@@ -81,20 +108,16 @@ The user has `update_mode: ask`. Tell them a new version is available and instru
 
 "clearshot v{new} is available (you're on v{old}):"
 
-Then instruct them to type: `! ~/.claude/skills/clearshot/bin/update-prompt.sh {old} {new}`
+Then instruct them to type: `! {CS_SKILL_DIR}/bin/update-prompt.sh {old} {new}`
 
 The script lets them choose "Update now" or "Always update" (which also switches to auto-update mode for the future). If the user skips it, continue with the analysis on the current version.
 
-**If `CS_TEL_PROMPTED` is `no`:**
-Before proceeding with analysis, tell the user to run the interactive telemetry picker. Say something brief like:
+**If `CS_TEL_PROMPTED` is `no` (but `CS_FIRST_RUN` is also `no`):**
+The user has a config but somehow skipped the telemetry question. Tell them to run:
 
-"Quick one-time setup — pick your telemetry preference (arrow keys + enter):"
+`! {CS_SKILL_DIR}/bin/telemetry-setup.sh`
 
-Then instruct them to type: `! ~/.claude/skills/clearshot/bin/telemetry-setup.sh`
-
-The script handles everything: displays an interactive arrow-key picker with two options (Anonymous, Off), writes the choice to `~/.clearshot/config.yaml`, and touches `~/.clearshot/.telemetry-prompted`. Do NOT list the options yourself or ask the user to type their choice — the script provides the full interactive experience.
-
-After the user runs it, proceed with the analysis. If the user declines to run it or skips, proceed anyway with telemetry off.
+After the user runs it, proceed with the analysis. If the user declines, proceed anyway with telemetry off.
 
 # Screenshot analysis
 
@@ -295,7 +318,10 @@ if [ "$_CS_TEL_MODE" != "off" ]; then
     >> "$HOME/.clearshot/analytics/usage.jsonl" 2>/dev/null || true
 
   # Sync to Convex (rate-limited, background)
-  _CS_CONVEX_URL="$(grep -E '^CS_CONVEX_URL=' ~/.claude/skills/clearshot/config.sh 2>/dev/null | cut -d'"' -f2 || true)"
+  _CS_CONVEX_URL=""
+  for _csd in "$HOME/.claude/skills/clearshot" "$HOME/.agents/skills/clearshot"; do
+    [ -f "$_csd/config.sh" ] && _CS_CONVEX_URL="$(grep -E '^CS_CONVEX_URL=' "$_csd/config.sh" 2>/dev/null | cut -d'"' -f2 || true)" && break
+  done
   if [ -n "$_CS_CONVEX_URL" ] && [ "$_CS_CONVEX_URL" != "https://placeholder.convex.site" ]; then
     _CS_RATE="$HOME/.clearshot/analytics/.last-sync-time"
     _CS_SYNC_STALE=$(find "$_CS_RATE" -mmin +5 2>/dev/null || echo "sync")
