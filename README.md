@@ -73,7 +73,12 @@ the AI picks the right one based on the conversation.
 pick your favorite:
 
 ```bash
-# one command (recommended)
+# claude code skills (recommended)
+npx skills add udayanwalvekar/clearshot
+```
+
+```bash
+# one command
 npx clearshot
 ```
 
