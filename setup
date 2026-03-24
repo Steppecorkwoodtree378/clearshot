@@ -2,13 +2,16 @@
 # clearshot setup
 set -e
 
-# ─── colors ──────────────────────────────────────────────────
+# ─── colors & style ─────────────────────────────────────────
 BOLD='\033[1m'
 DIM='\033[2m'
+ITALIC='\033[3m'
 CYAN='\033[36m'
 GREEN='\033[32m'
+MAGENTA='\033[35m'
 YELLOW='\033[33m'
 WHITE='\033[97m'
+BLUE='\033[34m'
 RESET='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,67 +21,153 @@ VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "1.
 
 clear 2>/dev/null || true
 
-# ─── welcome ─────────────────────────────────────────────────
-echo ""
-echo -e "${BOLD}${WHITE}  📸 clearshot ${DIM}v${VERSION}${RESET}"
-echo -e "${DIM}  structured screenshot intelligence for AI coding tools${RESET}"
-echo ""
-echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
-echo ""
+# ─── helper: typing effect ───────────────────────────────────
+type_out() {
+  local text="$1"
+  local delay="${2:-0.02}"
+  for (( i=0; i<${#text}; i++ )); do
+    printf '%s' "${text:$i:1}"
+    sleep "$delay" 2>/dev/null || true
+  done
+  echo ""
+}
 
-# ─── what it does ────────────────────────────────────────────
-echo -e "  ${BOLD}what this does${RESET}"
-echo ""
-echo -e "  your AI looks at a screenshot and sees"
-echo -e "  ${DIM}\"a dashboard with some cards.\"${RESET}"
-echo ""
-echo -e "  clearshot makes it see the ${CYAN}14px/16px type mismatch${RESET},"
-echo -e "  the ${CYAN}6px padding where 8px should be${RESET}, and the"
-echo -e "  ${CYAN}border-radius inconsistency${RESET} on the third card."
-echo ""
+# ─── helper: pause for readability ───────────────────────────
+pause() { sleep "${1:-0.3}" 2>/dev/null || true; }
 
-# ─── how it works ────────────────────────────────────────────
-echo -e "  ${BOLD}how it works${RESET}"
+# ─── logo ────────────────────────────────────────────────────
 echo ""
-echo -e "  ${DIM}1${RESET}  paste a screenshot into claude code"
-echo -e "  ${DIM}2${RESET}  clearshot runs a structured analysis pipeline"
-echo -e "     ${DIM}spatial grid · element inventory · design tokens${RESET}"
-echo -e "     ${DIM}layout architecture · interaction map${RESET}"
-echo -e "  ${DIM}3${RESET}  the AI gets precise data instead of guessing"
 echo ""
-echo -e "  it picks the right depth automatically."
-echo -e "  ${DIM}\"clone this\"${RESET} → full pipeline. ${DIM}\"looks right?\"${RESET} → quick scan."
+echo -e "   ${BOLD}${WHITE}┌─────────────────────────────────────────────┐${RESET}"
+echo -e "   ${BOLD}${WHITE}│                                             │${RESET}"
+echo -e "   ${BOLD}${WHITE}│${RESET}   ${BOLD}📸  c l e a r s h o t${RESET}   ${DIM}v${VERSION}${RESET}             ${BOLD}${WHITE}│${RESET}"
+echo -e "   ${BOLD}${WHITE}│                                             │${RESET}"
+echo -e "   ${BOLD}${WHITE}│${RESET}   ${DIM}your AI can finally see.${RESET}                  ${BOLD}${WHITE}│${RESET}"
+echo -e "   ${BOLD}${WHITE}│                                             │${RESET}"
+echo -e "   ${BOLD}${WHITE}└─────────────────────────────────────────────┘${RESET}"
 echo ""
+pause 0.5
 
-# ─── two modes ───────────────────────────────────────────────
-echo -e "  ${BOLD}two lenses${RESET}"
+# ─── the pitch ───────────────────────────────────────────────
+echo -e "   ${BOLD}the problem${RESET}"
 echo ""
-echo -e "  ${CYAN}analytical${RESET}  hex values, pixel measurements, component types"
-echo -e "  ${CYAN}qualitative${RESET} visual weight, hierarchy, breathing room, taste"
+pause 0.2
+echo -e "   you paste a screenshot. the AI says:"
+pause 0.3
 echo ""
-echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
+echo -e "   ${DIM}${ITALIC}\"i see a dashboard with some cards and a sidebar.\"${RESET}"
+pause 0.5
 echo ""
+echo -e "   ${YELLOW}you${RESET}, staring at a broken button, wrong padding,"
+echo -e "   inconsistent type scale, and a nav that makes no sense:"
+pause 0.3
+echo ""
+echo -e "   ${DIM}${ITALIC}\"...are we looking at the same screen?\"${RESET}"
+echo ""
+pause 0.5
 
-# ─── install steps ───────────────────────────────────────────
-echo -e "  ${BOLD}setting up...${RESET}"
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
 echo ""
+pause 0.3
+
+# ─── the fix ─────────────────────────────────────────────────
+echo -e "   ${BOLD}the fix${RESET}"
+echo ""
+pause 0.2
+echo -e "   clearshot runs a structured analysis ${ITALIC}before${RESET}"
+echo -e "   the AI responds. it doesn't guess. it ${CYAN}knows${RESET}."
+echo ""
+pause 0.3
+echo -e "   ${CYAN}→${RESET} not ${DIM}\"blue color\"${RESET} but ${CYAN}#3B82F6${RESET}"
+echo -e "   ${CYAN}→${RESET} not ${DIM}\"some spacing\"${RESET} but ${CYAN}8px gap${RESET}"
+echo -e "   ${CYAN}→${RESET} not ${DIM}\"a button\"${RESET} but ${CYAN}sm/rounded-md/border-gray-200/shadow-sm${RESET}"
+echo ""
+pause 0.5
+
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
+echo ""
+pause 0.3
+
+# ─── the pipeline ────────────────────────────────────────────
+echo -e "   ${BOLD}five-step pipeline${RESET} ${DIM}(runs only what's needed)${RESET}"
+echo ""
+pause 0.2
+echo -e "   ${MAGENTA}①${RESET}  spatial grid        ${DIM}where everything lives${RESET}"
+echo -e "   ${MAGENTA}②${RESET}  element inventory   ${DIM}every component, precisely${RESET}"
+echo -e "   ${MAGENTA}③${RESET}  design tokens       ${DIM}colors, type, spacing${RESET}"
+echo -e "   ${MAGENTA}④${RESET}  layout architecture ${DIM}flex, grid, constraints${RESET}"
+echo -e "   ${MAGENTA}⑤${RESET}  interaction map     ${DIM}CTAs, nav, forms, states${RESET}"
+echo ""
+pause 0.3
+echo -e "   ${DIM}\"clone this\" → all 5. \"looks right?\" → just ①.${RESET}"
+echo -e "   ${DIM}it reads the room.${RESET}"
+echo ""
+pause 0.5
+
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
+echo ""
+pause 0.3
+
+# ─── two brains ──────────────────────────────────────────────
+echo -e "   ${BOLD}two brains${RESET}"
+echo ""
+pause 0.2
+echo -e "   ${CYAN}🔬 analytical${RESET}   pixel-perfect. hex codes, measurements,"
+echo -e "                  component types. the engineer brain."
+echo ""
+echo -e "   ${MAGENTA}🎨 qualitative${RESET}  does it ${ITALIC}feel${RESET} right? visual weight,"
+echo -e "                  hierarchy, breathing room. the designer brain."
+echo ""
+pause 0.3
+echo -e "   ${DIM}picks the right one automatically. or blends both.${RESET}"
+echo ""
+pause 0.5
+
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
+echo ""
+pause 0.3
+
+# ─── smart enough to shut up ────────────────────────────────
+echo -e "   ${BOLD}smart enough to shut up${RESET}"
+echo ""
+pause 0.2
+echo -e "   screenshot of a meme? ${DIM}stays quiet.${RESET}"
+echo -e "   architecture diagram? ${DIM}stays quiet.${RESET}"
+echo -e "   photo of your lunch? ${DIM}definitely stays quiet.${RESET}"
+echo ""
+echo -e "   ${DIM}only wakes up for UI screenshots when you're${RESET}"
+echo -e "   ${DIM}actually building or critiquing frontend.${RESET}"
+echo ""
+pause 0.5
+
+echo -e "   ${WHITE}${BOLD}┌─────────────────────────────────────────────┐${RESET}"
+echo -e "   ${WHITE}${BOLD}│${RESET}  ${BOLD}installing...${RESET}                              ${WHITE}${BOLD}│${RESET}"
+echo -e "   ${WHITE}${BOLD}└─────────────────────────────────────────────┘${RESET}"
+echo ""
+pause 0.3
+
+# ─── actual setup ────────────────────────────────────────────
 
 # 1. local state
 mkdir -p "$STATE_DIR/analytics"
 mkdir -p "$STATE_DIR/feedback"
-echo -e "  ${GREEN}✓${RESET} local state       ${DIM}~/.clearshot/${RESET}"
+pause 0.2
+echo -e "   ${GREEN}✓${RESET}  local state         ${DIM}~/.clearshot/${RESET}"
 
 # 2. skill registration
 mkdir -p "$HOME/.claude/skills"
 if [ -L "$SKILL_DIR" ]; then
-  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}already registered${RESET}"
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}already linked${RESET}"
 elif [ -d "$SKILL_DIR" ]; then
   rm -rf "$SKILL_DIR"
   ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
-  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}updated symlink${RESET}"
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}updated${RESET}"
 else
   ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
-  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}~/.claude/skills/clearshot${RESET}"
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}~/.claude/skills/clearshot${RESET}"
 fi
 
 # 3. config
@@ -87,23 +176,43 @@ if [ ! -f "$STATE_DIR/config.yaml" ]; then
 telemetry: off
 update_check: true
 YAML
-  echo -e "  ${GREEN}✓${RESET} config created     ${DIM}telemetry off by default${RESET}"
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  config created      ${DIM}telemetry off by default${RESET}"
 else
-  echo -e "  ${GREEN}✓${RESET} config exists      ${DIM}keeping your settings${RESET}"
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  config preserved    ${DIM}your settings are safe${RESET}"
 fi
 
+pause 0.3
+echo ""
+
 # ─── done ────────────────────────────────────────────────────
+echo -e "   ${WHITE}${BOLD}┌─────────────────────────────────────────────┐${RESET}"
+echo -e "   ${WHITE}${BOLD}│${RESET}                                             ${WHITE}${BOLD}│${RESET}"
+echo -e "   ${WHITE}${BOLD}│${RESET}   ${GREEN}${BOLD}you're in.${RESET}                                ${WHITE}${BOLD}│${RESET}"
+echo -e "   ${WHITE}${BOLD}│${RESET}                                             ${WHITE}${BOLD}│${RESET}"
+echo -e "   ${WHITE}${BOLD}└─────────────────────────────────────────────┘${RESET}"
 echo ""
-echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
+pause 0.3
+
+echo -e "   ${BOLD}what happens next${RESET}"
 echo ""
-echo -e "  ${GREEN}${BOLD}ready.${RESET}"
+echo -e "   ${CYAN}→${RESET}  drop a UI screenshot into claude code"
+echo -e "      clearshot activates automatically"
 echo ""
-echo -e "  drop a UI screenshot into claude code."
-echo -e "  clearshot activates automatically."
+echo -e "   ${CYAN}→${RESET}  first time, it'll ask about telemetry"
+echo -e "      ${DIM}three tiers: community · anonymous · off${RESET}"
+echo -e "      ${DIM}no screenshots or code ever leave your machine${RESET}"
 echo ""
-echo -e "  ${DIM}first run will ask about telemetry (opt-in, 3 tiers).${RESET}"
-echo -e "  ${DIM}updates check automatically — you'll be prompted when new.${RESET}"
+echo -e "   ${CYAN}→${RESET}  updates happen automatically"
+echo -e "      ${DIM}you'll be nudged when there's a new version${RESET}"
 echo ""
-echo -e "  ${DIM}repo${RESET}  ${CYAN}github.com/udayanwalvekar/clearshot${RESET}"
-echo -e "  ${DIM}docs${RESET}  ${CYAN}read the README for the full breakdown${RESET}"
+pause 0.3
+
+echo -e "   ${DIM}─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─${RESET}"
+echo ""
+echo -e "   ${DIM}repo${RESET}    ${CYAN}github.com/udayanwalvekar/clearshot${RESET}"
+echo -e "   ${DIM}author${RESET}  ${CYAN}udayan walvekar${RESET}"
+echo ""
+echo -e "   ${DIM}go break some UIs. clearshot's watching. 👀${RESET}"
 echo ""
