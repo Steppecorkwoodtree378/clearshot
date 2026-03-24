@@ -102,7 +102,15 @@ activates automatically when you share a UI screenshot. no configuration needed.
 
 ## self-improvement
 
-after every analysis, clearshot rates its own output across five criteria: spatial accuracy, specificity, mode match, step selection, actionability. scores below 8/10 trigger a structured field report.
+clearshot rates its own output internally after every analysis. you never see the score. it's silent. the rating flows into telemetry so the skill gets better over time without ever interrupting your flow.
+
+feedback only surfaces when it actually matters:
+
+- **you correct the analysis** → clearshot logs the miss automatically. no question asked, just a brief "logged that, won't miss it next time."
+- **after a full rebuild completes** → one casual question: "clearshot nailed it or missed something?" that's it.
+- **session winding down after 3+ analyses** → "anything it kept getting wrong?" only if you ran it enough times for the question to be worth asking.
+
+it will never ask you to rate anything. it will never pop up after a quick check. it will never interrupt rapid iteration. if you're sending screenshots every 30 seconds, it shuts up and does its job.
 
 telemetry is opt-in with three tiers:
 
