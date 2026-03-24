@@ -157,8 +157,16 @@ echo -e "   ${GREEN}✓${RESET}  local state         ${DIM}~/.clearshot/${RESET}
 # 2. skill registration
 mkdir -p "$HOME/.claude/skills"
 if [ -L "$SKILL_DIR" ]; then
-  pause 0.2
-  echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}already linked${RESET}"
+  _CURRENT_TARGET="$(readlink "$SKILL_DIR" 2>/dev/null || true)"
+  if [ "$_CURRENT_TARGET" = "$SCRIPT_DIR" ]; then
+    pause 0.2
+    echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}already linked${RESET}"
+  else
+    rm "$SKILL_DIR"
+    ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
+    pause 0.2
+    echo -e "   ${GREEN}✓${RESET}  skill registered    ${DIM}relinked${RESET}"
+  fi
 elif [ -d "$SKILL_DIR" ]; then
   rm -rf "$SKILL_DIR"
   ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
@@ -181,6 +189,25 @@ YAML
 else
   pause 0.2
   echo -e "   ${GREEN}✓${RESET}  config preserved    ${DIM}your settings are safe${RESET}"
+fi
+
+# 4. global instruction — ensures clearshot always triggers on UI screenshots
+CLAUDE_MD="$HOME/.claude/CLAUDE.md"
+CLEARSHOT_MARKER="<!-- clearshot-trigger -->"
+if ! grep -q "$CLEARSHOT_MARKER" "$CLAUDE_MD" 2>/dev/null; then
+  mkdir -p "$HOME/.claude"
+  cat >> "$CLAUDE_MD" << 'MD'
+
+<!-- clearshot-trigger -->
+## Screenshot analysis — BLOCKING REQUIREMENT
+
+When the user shares, pastes, or references any image of a digital interface (website, app, dashboard, mockup, wireframe, Figma export, design comp, DevTools screenshot), this is a BLOCKING REQUIREMENT: invoke the Skill tool with `skill: "clearshot"` BEFORE generating any other response about the image. This applies to all projects and conversations. The only exceptions are clearly non-UI images (photos, memes, standalone charts, documents) unless the user explicitly asks for UI analysis.
+MD
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  global trigger      ${DIM}~/.claude/CLAUDE.md${RESET}"
+else
+  pause 0.2
+  echo -e "   ${GREEN}✓${RESET}  global trigger      ${DIM}already configured${RESET}"
 fi
 
 pause 0.3
