@@ -71,7 +71,7 @@ the AI picks the right one based on the conversation.
 ## install
 
 ```bash
-git clone https://github.com/udayanwalvekar/clearshot ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
+curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/install.sh | bash
 ```
 
 activates automatically when you share a UI screenshot. no configuration needed.
