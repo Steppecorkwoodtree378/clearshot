@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# clearshot setup — register the skill with Claude Code
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILL_DIR="$HOME/.claude/skills/clearshot"
+STATE_DIR="$HOME/.clearshot"
+
+echo "clearshot setup"
+echo "==============="
+echo ""
+
+# 1. Create local state directory
+mkdir -p "$STATE_DIR/analytics"
+mkdir -p "$STATE_DIR/feedback"
+echo "[ok] Created state directory at $STATE_DIR"
+
+# 2. Symlink to Claude skills directory
+mkdir -p "$HOME/.claude/skills"
+if [ -L "$SKILL_DIR" ]; then
+  echo "[ok] Skill already symlinked at $SKILL_DIR"
+elif [ -d "$SKILL_DIR" ]; then
+  echo "[..] Skill directory exists (not a symlink). Replacing with symlink..."
+  rm -rf "$SKILL_DIR"
+  ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
+  echo "[ok] Updated: symlinked $SKILL_DIR -> $SCRIPT_DIR"
+else
+  ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
+  echo "[ok] Installed: $SKILL_DIR -> $SCRIPT_DIR"
+fi
+
+# 3. Initialize config if missing
+if [ ! -f "$STATE_DIR/config.yaml" ]; then
+  cat > "$STATE_DIR/config.yaml" << 'YAML'
+telemetry: off
+update_check: true
+YAML
+  echo "[ok] Created config at $STATE_DIR/config.yaml"
+else
+  echo "[ok] Config already exists at $STATE_DIR/config.yaml"
+fi
+
+echo ""
+echo "Done! The skill will activate next time Claude Code sees a UI screenshot."
+echo "First run will ask about telemetry preferences."

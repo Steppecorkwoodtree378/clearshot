@@ -1,0 +1,12 @@
+node_modules/
+convex/_generated/
+.env.local
+.env
+.DS_Store
+
+# Convex auto-generated skills
+.agents/
+.claude/
+skills/
+skills-lock.json
+AGENTS.md
