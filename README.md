@@ -70,8 +70,26 @@ the AI picks the right one based on the conversation.
 
 ## install
 
+pick your favorite:
+
 ```bash
+# one command (recommended)
+npx clearshot
+```
+
+```bash
+# claude code plugin
+claude plugin install clearshot
+```
+
+```bash
+# curl
 curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/install.sh | bash
+```
+
+```bash
+# manual
+git clone https://github.com/udayanwalvekar/clearshot ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
 ```
 
 activates automatically when you share a UI screenshot. no configuration needed.

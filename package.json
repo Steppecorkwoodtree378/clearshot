@@ -1,7 +1,24 @@
 {
   "name": "clearshot",
   "version": "1.0.0",
-  "private": true,
+  "description": "Structured screenshot intelligence for AI coding tools",
+  "bin": {
+    "clearshot": "bin/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/udayanwalvekar/clearshot.git"
+  },
+  "keywords": [
+    "screenshot",
+    "ui-analysis",
+    "claude-code",
+    "ai-coding",
+    "design-system",
+    "visual-intelligence"
+  ],
+  "author": "Udayan Walvekar",
+  "license": "MIT",
   "dependencies": {
     "convex": "^1.34.0"
   }

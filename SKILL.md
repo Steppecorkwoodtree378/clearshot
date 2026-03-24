@@ -207,36 +207,54 @@ Match the output structure to the context. Don't force headers and sections when
 
 ## Self-rating
 
-After completing the analysis, rate your own output 0-10 across these criteria:
-- **Spatial accuracy**: Did the grid correctly map the layout sections?
-- **Specificity**: Are colors hex, sizes pixel-estimated, components precisely named?
-- **Mode match**: Did the analysis mode match what the user needed?
-- **Step selection**: Were the right steps run at the right depth?
-- **Actionability**: Could someone implement or act on this analysis alone?
+### Internal, silent, every time
 
-Average the scores. Report: `Self-rating: X/10`
+After completing any analysis, rate your own output 0-10 across these criteria: spatial accuracy (did the grid correctly map the layout sections?), specificity (are colors hex, sizes pixel-estimated, components precisely named?), mode match (did the analysis mode match what the user needed?), step selection (were the right steps run at the right depth?), actionability (could someone implement or act on this analysis alone?). Average the scores.
 
-If the rating is below 8, tell the user: "My analysis scored X/10 — [brief reason]. Want me to file a field report so the skill improves?"
+This rating is strictly internal. It flows into telemetry as the `RATING` field in the epilogue, but it is never shown to the user as "Self-rating: X/10" or any equivalent. The reason: displaying a score after every analysis is noisy and self-congratulatory. It adds nothing for the user and trains them to ignore it, which means the one time the score actually matters (a significant miss), they won't notice.
 
-If yes, write to `~/.clearshot/feedback/YYYY-MM-DD-{slug}.md`:
+### When to surface feedback
+
+There are exactly three situations where the skill should involve the user in quality feedback. Outside of these, stay quiet about quality.
+
+**Trigger 1: User correction.** If the user corrects the analysis — "no, that's wrong," "you missed the nav," "the padding is off," "that's not a sidebar" — fix the issue, then note briefly: "logged that miss so clearshot gets better at catching [the specific thing]." No question asked, no form presented. Automatically write a field report (see below). This is the highest-signal feedback because it comes from real frustration with a real gap. Capturing it without friction means it actually gets captured.
+
+**Trigger 2: After a significant rebuild completes.** If the user asked for a full rebuild or clone (all 5 analysis steps ran) and the implementation is done, ask one casual question: "clearshot nailed it or missed something? just curious." One shot. Not a form. Not five criteria. Not a rating scale. The question is deliberately low-pressure because post-implementation is when users have the clearest picture of what the analysis got right or wrong, but they won't engage with anything that feels like a survey.
+
+**Trigger 3: Session wind-down.** If 3 or more analyses happened in a single session and the conversation is winding down (the user says thanks, goodbye, shifts context away from UI work, or goes idle), append a quiet note: "ran clearshot X times this session. anything it kept getting wrong?" Only if 3+ analyses occurred. Never mid-flow. This catches patterns that no single correction would surface — recurring blind spots that the user tolerated individually but that add up.
+
+**Never trigger feedback in these situations:**
+- After quick checks ("does this look right?" where only step 1 ran). The user is in flow. Interrupting flow for meta-conversation about analysis quality is the opposite of helpful.
+- After qualitative-only analyses. These are subjective by nature; asking "was my subjective read correct?" is circular.
+- When the user is in rapid iteration mode (multiple screenshots in quick succession). Speed is the priority. Anything that isn't "here's what I see" is drag.
+- After every single analysis. This was the old behavior. It was annoying. Don't do it.
+
+### Field reports
+
+Write to `~/.clearshot/feedback/YYYY-MM-DD-{slug}.md`, but only on these conditions:
+
+- **User correction**: automatic, no permission needed. The correction is the permission. Format:
 
 ```
-# {Title}
+# {Title describing the miss}
 **What was analyzed:** {screenshot description}
 **Mode used:** {analytical/qualitative/blended}
 **Steps run:** {1,2,3,4,5}
-**Self-rating:** {X}/10
-**Why not a 10:** {specific gap}
-## What would make this a 10
-{one paragraph}
+**What was missed:** {specific element or detail the user corrected}
+**Correction:** {what the user said}
+**Internal rating:** {X}/10
 **Date:** {YYYY-MM-DD} | **Version:** {version from preamble}
 ```
 
-If telemetry is `community` or `anonymous`, also POST the structured metadata to the feedback endpoint (see epilogue).
+- **User explicitly says something was wrong** (via trigger 2 or 3 response): write a field report with the user's feedback included.
+
+- **Internal rating below 5**: write a field report silently. A score below 5 means the analysis had a significant structural miss (wrong layout mapping, missed major sections, completely wrong mode). These are rare enough that logging them won't create noise, but important enough that they shouldn't be lost.
+
+Field reports are never written for routine analyses that went fine. The signal-to-noise ratio of the feedback directory matters more than its completeness.
 
 ## Epilogue
 
-After analysis and self-rating are complete, log the event. Substitute actual values from your analysis for the placeholder variables (OUTCOME, MODE_USED, STEPS_RUN, RATING).
+After analysis is complete, log the event. The self-rating is always computed internally (see the self-rating section) and always included here as the `RATING` field — this is how it reaches telemetry silently without ever being displayed to the user. Substitute actual values from your analysis for the placeholder variables (OUTCOME, MODE_USED, STEPS_RUN, RATING).
 
 ```bash
 _CS_TEL_END=$(date +%s)
