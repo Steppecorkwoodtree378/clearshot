@@ -1,45 +1,109 @@
 #!/usr/bin/env bash
-# clearshot setup — register the skill with Claude Code
+# clearshot setup
 set -e
+
+# ─── colors ──────────────────────────────────────────────────
+BOLD='\033[1m'
+DIM='\033[2m'
+CYAN='\033[36m'
+GREEN='\033[32m'
+YELLOW='\033[33m'
+WHITE='\033[97m'
+RESET='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$HOME/.claude/skills/clearshot"
 STATE_DIR="$HOME/.clearshot"
+VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "1.0.0")"
 
-echo "clearshot setup"
-echo "==============="
+clear 2>/dev/null || true
+
+# ─── welcome ─────────────────────────────────────────────────
+echo ""
+echo -e "${BOLD}${WHITE}  📸 clearshot ${DIM}v${VERSION}${RESET}"
+echo -e "${DIM}  structured screenshot intelligence for AI coding tools${RESET}"
+echo ""
+echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
 echo ""
 
-# 1. Create local state directory
+# ─── what it does ────────────────────────────────────────────
+echo -e "  ${BOLD}what this does${RESET}"
+echo ""
+echo -e "  your AI looks at a screenshot and sees"
+echo -e "  ${DIM}\"a dashboard with some cards.\"${RESET}"
+echo ""
+echo -e "  clearshot makes it see the ${CYAN}14px/16px type mismatch${RESET},"
+echo -e "  the ${CYAN}6px padding where 8px should be${RESET}, and the"
+echo -e "  ${CYAN}border-radius inconsistency${RESET} on the third card."
+echo ""
+
+# ─── how it works ────────────────────────────────────────────
+echo -e "  ${BOLD}how it works${RESET}"
+echo ""
+echo -e "  ${DIM}1${RESET}  paste a screenshot into claude code"
+echo -e "  ${DIM}2${RESET}  clearshot runs a structured analysis pipeline"
+echo -e "     ${DIM}spatial grid · element inventory · design tokens${RESET}"
+echo -e "     ${DIM}layout architecture · interaction map${RESET}"
+echo -e "  ${DIM}3${RESET}  the AI gets precise data instead of guessing"
+echo ""
+echo -e "  it picks the right depth automatically."
+echo -e "  ${DIM}\"clone this\"${RESET} → full pipeline. ${DIM}\"looks right?\"${RESET} → quick scan."
+echo ""
+
+# ─── two modes ───────────────────────────────────────────────
+echo -e "  ${BOLD}two lenses${RESET}"
+echo ""
+echo -e "  ${CYAN}analytical${RESET}  hex values, pixel measurements, component types"
+echo -e "  ${CYAN}qualitative${RESET} visual weight, hierarchy, breathing room, taste"
+echo ""
+echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
+echo ""
+
+# ─── install steps ───────────────────────────────────────────
+echo -e "  ${BOLD}setting up...${RESET}"
+echo ""
+
+# 1. local state
 mkdir -p "$STATE_DIR/analytics"
 mkdir -p "$STATE_DIR/feedback"
-echo "[ok] Created state directory at $STATE_DIR"
+echo -e "  ${GREEN}✓${RESET} local state       ${DIM}~/.clearshot/${RESET}"
 
-# 2. Symlink to Claude skills directory
+# 2. skill registration
 mkdir -p "$HOME/.claude/skills"
 if [ -L "$SKILL_DIR" ]; then
-  echo "[ok] Skill already symlinked at $SKILL_DIR"
+  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}already registered${RESET}"
 elif [ -d "$SKILL_DIR" ]; then
-  echo "[..] Skill directory exists (not a symlink). Replacing with symlink..."
   rm -rf "$SKILL_DIR"
   ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
-  echo "[ok] Updated: symlinked $SKILL_DIR -> $SCRIPT_DIR"
+  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}updated symlink${RESET}"
 else
   ln -sf "$SCRIPT_DIR" "$SKILL_DIR"
-  echo "[ok] Installed: $SKILL_DIR -> $SCRIPT_DIR"
+  echo -e "  ${GREEN}✓${RESET} skill linked       ${DIM}~/.claude/skills/clearshot${RESET}"
 fi
 
-# 3. Initialize config if missing
+# 3. config
 if [ ! -f "$STATE_DIR/config.yaml" ]; then
   cat > "$STATE_DIR/config.yaml" << 'YAML'
 telemetry: off
 update_check: true
 YAML
-  echo "[ok] Created config at $STATE_DIR/config.yaml"
+  echo -e "  ${GREEN}✓${RESET} config created     ${DIM}telemetry off by default${RESET}"
 else
-  echo "[ok] Config already exists at $STATE_DIR/config.yaml"
+  echo -e "  ${GREEN}✓${RESET} config exists      ${DIM}keeping your settings${RESET}"
 fi
 
+# ─── done ────────────────────────────────────────────────────
 echo ""
-echo "Done! The skill will activate next time Claude Code sees a UI screenshot."
-echo "First run will ask about telemetry preferences."
+echo -e "  ${DIM}────────────────────────────────────────────────${RESET}"
+echo ""
+echo -e "  ${GREEN}${BOLD}ready.${RESET}"
+echo ""
+echo -e "  drop a UI screenshot into claude code."
+echo -e "  clearshot activates automatically."
+echo ""
+echo -e "  ${DIM}first run will ask about telemetry (opt-in, 3 tiers).${RESET}"
+echo -e "  ${DIM}updates check automatically — you'll be prompted when new.${RESET}"
+echo ""
+echo -e "  ${DIM}repo${RESET}  ${CYAN}github.com/udayanwalvekar/clearshot${RESET}"
+echo -e "  ${DIM}docs${RESET}  ${CYAN}read the README for the full breakdown${RESET}"
+echo ""
