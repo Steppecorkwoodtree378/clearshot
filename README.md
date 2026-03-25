@@ -22,13 +22,17 @@ real files get committed to your repo (not a submodule), so `git clone` just wor
 
 also available via `npx clearshot`.
 
+### installed before v1.4.0? reinstall
+
+there was a small bug that was causing clearshot to not get triggered consistently. paste this in your terminal to fix it:
+
+```
+rm -rf ~/.claude/skills/clearshot ~/.clearshot && git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
+```
+
 ### troubleshooting
 
-if clearshot stopped working or the skill won't load:
-
-```
-rm -f ~/.claude/skills/clearshot && git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
-```
+if clearshot stopped working or the skill won't load, run the same command above.
 
 activates automatically when you share a UI screenshot. first time it runs, it asks two questions (update preference + telemetry) and you're done.
 
