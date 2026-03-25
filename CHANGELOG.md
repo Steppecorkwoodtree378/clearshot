@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.4.0 (2026-03-25)
+
+- **install simplification**: git clone is now the primary install method — paste one command into claude code
+- **non-interactive setup**: setup script detects when running without a TTY and uses defaults — works when claude runs it
+- **self-healing trigger**: setup now updates the CLAUDE.md trigger block in-place when it's outdated
+- **safer self-repair**: repair command only removes symlinks (not directories), uses git clone instead of curl
+- **slimmer npm package**: convex moved to devDependencies, ships only what's needed
+
 ## 1.3.0 (2026-03-25)
 
 - Replaced 5-step pipeline with 3 analysis levels: Map, System, Blueprint
