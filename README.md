@@ -2,22 +2,32 @@
 
 structured screenshot intelligence for AI coding tools.
 
-## install
+## install — 30 seconds
+
+open claude code and paste this. claude does the rest.
 
 ```
-npx clearshot
+git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
 ```
 
-or
+### add to your project so teammates get it (optional)
 
 ```
-npx skills add udayanwalvekar/clearshot
+cp -Rf ~/.claude/skills/clearshot .claude/skills/clearshot && rm -rf .claude/skills/clearshot/.git && cd .claude/skills/clearshot && ./setup
 ```
 
-or
+real files get committed to your repo (not a submodule), so `git clone` just works for your teammates. everything lives inside `.claude/`.
+
+### alternative
+
+also available via `npx clearshot`.
+
+### troubleshooting
+
+if clearshot stopped working or the skill won't load:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/udayanwalvekar/clearshot/main/install.sh | bash
+rm -f ~/.claude/skills/clearshot && git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
 ```
 
 activates automatically when you share a UI screenshot. first time it runs, it asks two questions (update preference + telemetry) and you're done.
