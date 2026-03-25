@@ -20,6 +20,22 @@ function main() {
   console.log("\nclearshot - structured screenshot intelligence\n");
 
   try {
+    // Detect and remove broken symlinks (including circular ones that cause ELOOP)
+    try {
+      const lstat = fs.lstatSync(INSTALL_DIR);
+      if (lstat.isSymbolicLink() && !fs.existsSync(INSTALL_DIR)) {
+        console.log("broken symlink detected at " + INSTALL_DIR + ", removing...");
+        fs.unlinkSync(INSTALL_DIR);
+      }
+    } catch (e) {
+      // ENOENT means path doesn't exist at all — that's fine, fresh install
+      if (e.code !== "ENOENT") {
+        // ELOOP or other errors mean a broken/circular symlink — remove it
+        console.log("broken symlink detected at " + INSTALL_DIR + " (" + e.code + "), removing...");
+        try { fs.unlinkSync(INSTALL_DIR); } catch (_) {}
+      }
+    }
+
     if (fs.existsSync(path.join(INSTALL_DIR, ".git"))) {
       console.log("existing installation found, updating...");
       run("git pull", { cwd: INSTALL_DIR });
